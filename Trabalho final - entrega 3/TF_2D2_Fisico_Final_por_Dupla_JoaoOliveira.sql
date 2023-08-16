@@ -1,0 +1,134 @@
+-- -------- < TRABALHO FINAL > --------
+--
+--                    SCRIPT DE CRIACAO (DDL)
+--
+-- Data Criacao ...........: 19/06/2023
+-- Autor(es) ..............: João Victor Max Bisinotti de Oliveira, Guilherme Soares Rocha 
+-- Banco de Dados .........: MySQL 8.0
+-- Base de Dados (nome) ...: TF2D2
+--
+-- PROJETO => 01 Base de Dados
+--         => 11 tabelas
+--        
+-- 
+-- Ultimas Alteracoes
+--   19/06/2023 => Criação do script
+--   03/07/2023 => Alteração no projeto original, envolvendo 3 novas tabelas
+-- ---------------------------------------------------------
+CREATE DATABASE IF NOT EXISTS TF_2D2_joaooliveira;
+
+USE TF2D2;
+
+CREATE TABLE PESSOA (
+    cpf DECIMAL(11,0) NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    salario DECIMAL(7,2) NOT NULL,
+    ddd DECIMAL(2,0) NOT NULL,
+    numero DECIMAL(9,0) NOT NULL,
+    CONSTRAINT PESSOA_PK PRIMARY KEY(cpf)
+) ENGINE=InnoDB;
+
+CREATE TABLE FUNCIONARIO (
+    idFuncionario INT NOT NULL AUTO_INCREMENT,
+    cpfPessoa DECIMAL(11,0) NOT NULL,
+    CONSTRAINT FUNCIONARIO_PK PRIMARY KEY(idFuncionario),
+    CONSTRAINT FUNCIONARIO_PESSOA_FK FOREIGN KEY(cpfPessoa) REFERENCES PESSOA(cpf)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT FUNCIONARIO_UK UNIQUE KEY(cpfPessoa)
+) ENGINE=InnoDB;
+
+CREATE TABLE SOCIO (
+    idSocio INT NOT NULL AUTO_INCREMENT,
+    cargo VARCHAR(50) NOT NULL,
+    cpfPessoa DECIMAL(11,0) NOT NULL,
+    CONSTRAINT SOCIO_PK PRIMARY KEY(idSocio),
+    CONSTRAINT SOCIO_PESSOA_FK FOREIGN KEY(cpfPessoa) REFERENCES PESSOA(cpf)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT SOCIO_UK UNIQUE KEY(cpfPessoa)
+) ENGINE=InnoDB;
+
+CREATE TABLE FORNECEDOR (
+    idFornecedor INT NOT NULL AUTO_INCREMENT,
+    nomeFornecedor VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    ddd DECIMAL(2,0) NOT NULL,
+    numero DECIMAL(9,0) NOT NULL,
+    CONSTRAINT FORNECEDOR_PK PRIMARY KEY(idFornecedor)
+) ENGINE=InnoDB;
+
+CREATE TABLE TRANSACAO (
+    idTransacao INT NOT NULL AUTO_INCREMENT,
+    formaPagamento ENUM('BOLETO','DEBITO','CREDITO','PIX','DINHEIRO') NOT NULL,
+    tipoTransacao ENUM('COMPRA','VENDA') NOT NULL,
+    dtTransacao DATE NOT NULL,
+    horaTransacao TIME NOT NULL,
+    idFuncionario INT,
+    CONSTRAINT TRANSACAO_PK PRIMARY KEY(idTransacao),
+    CONSTRAINT TRANSACAO_FUNCIONARIO_FK FOREIGN KEY(idFuncionario) REFERENCES FUNCIONARIO(idFuncionario)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE NOTAFISCAL (
+    idNota INT NOT NULL AUTO_INCREMENT,
+    dtEmissao DATE NOT NULL,
+    idTransacao INT,
+    CONSTRAINT NOTAFISCAL_PK PRIMARY KEY(idNota),
+    CONSTRAINT NOTAFISCAL_TRANSACAO_FK FOREIGN KEY(idTransacao) REFERENCES TRANSACAO(idTransacao)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE SETOR (
+    idSetor INT NOT NULL AUTO_INCREMENT,
+    nomeSetor VARCHAR(100) NOT NULL,
+    CONSTRAINT SETOR_PK PRIMARY KEY(idSetor)
+) ENGINE=InnoDB ;
+
+CREATE TABLE MARCA (
+    idMarca INT NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    CONSTRAINT MARCA_PK PRIMARY KEY(idMarca)
+) ENGINE=InnoDB;
+
+CREATE TABLE PRODUTO (
+    idProduto INT NOT NULL AUTO_INCREMENT,
+    nomeProduto VARCHAR(100) NOT NULL,
+    precoProduto DECIMAL(6,2) NOT NULL,
+    dtValidade DATE NOT NULL,
+    dtChegada DATE NOT NULL,
+    quantidade DECIMAL(4,0) NOT NULL,
+    idSetor INT,
+    idMarca INT,
+    CONSTRAINT PRODUTO_PK PRIMARY KEY(idProduto),
+    CONSTRAINT PRODUTO_SETOR_FK FOREIGN KEY(idSetor) REFERENCES SETOR(idSetor)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+    CONSTRAINT PRODUTO_MARCA_FK FOREIGN KEY(idMarca) REFERENCES MARCA(idMarca)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE inclui (
+    idTransacao INT NOT NULL,
+    idProduto INT NOT NULL,
+    CONSTRAINT inclui_TRANSACAO_FK FOREIGN KEY(idTransacao) REFERENCES TRANSACAO(idTransacao)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT inclui_PRODUTO_FK FOREIGN KEY(idProduto) REFERENCES PRODUTO(idProduto)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE fornece (
+    idProduto INT NOT NULL,
+    idFornecedor INT NOT NULL,
+    CONSTRAINT fornece_PRODUTO_FK FOREIGN KEY(idProduto) REFERENCES PRODUTO(idProduto)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fornece_FORNECEDOR_FK FOREIGN KEY(idFornecedor) REFERENCES FORNECEDOR(idFornecedor)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
